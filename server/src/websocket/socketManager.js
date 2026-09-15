@@ -1,30 +1,30 @@
-import { WebSocketServer } from 'ws';
-import { handleSocketMessage } from './eventHandlers.js';
-import { logger } from '../utils/logger.js';
+import { WebSocketServer } from "ws";
+import { handleSocketMessage } from "./eventHandlers.js";
+import { logger } from "../utils/logger.js";
 
 export class SocketManager {
   constructor(server) {
-    this.wss = new WebSocketServer({ server, path: '/ws' });
+    this.wss = new WebSocketServer({ server, path: "/ws" });
     this.sessionSockets = new Map(); // sessionId -> Set<WebSocket>
 
-    this.wss.on('connection', (ws, req) => {
+    this.wss.on("connection", (ws, req) => {
       ws.isAlive = true;
       ws.sessionId = null;
 
-      ws.on('pong', () => {
+      ws.on("pong", () => {
         ws.isAlive = true;
       });
 
-      ws.on('message', (message) => {
+      ws.on("message", (message) => {
         handleSocketMessage(ws, message.toString(), this);
       });
 
-      ws.on('close', () => {
+      ws.on("close", () => {
         this.unregisterSocket(ws);
       });
 
-      ws.on('error', (err) => {
-        logger.error('WebSocket connection error', { error: err.message });
+      ws.on("error", (err) => {
+        logger.error("WebSocket connection error", { error: err.message });
       });
     });
 
@@ -32,7 +32,7 @@ export class SocketManager {
     this.heartbeatInterval = setInterval(() => {
       this.wss.clients.forEach((ws) => {
         if (ws.isAlive === false) {
-          logger.info('Terminating inactive WebSocket client');
+          logger.info("Terminating inactive WebSocket client");
           return ws.terminate();
         }
         ws.isAlive = false;
@@ -40,7 +40,7 @@ export class SocketManager {
       });
     }, 30000);
 
-    this.wss.on('close', () => {
+    this.wss.on("close", () => {
       clearInterval(this.heartbeatInterval);
     });
   }
@@ -59,9 +59,9 @@ export class SocketManager {
 
       // Notify remaining device of disconnection
       this.broadcastToSession(ws.sessionId, {
-        type: 'DEVICE_LEFT',
+        type: "DEVICE_LEFT",
         role: ws.role,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       if (sockets.size === 0) {
