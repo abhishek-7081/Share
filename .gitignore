@@ -1,7 +1,5 @@
 node_modules
-# server
-# client
 tests
-uploads_temp
+# uploads_temp
 .env*
 dist
